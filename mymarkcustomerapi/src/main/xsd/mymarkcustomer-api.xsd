@@ -1,0 +1,71 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+	xmlns:tns="http://customer.mymark.com/api" targetNamespace="http://customer.mymark.com/api"
+	elementFormDefault="qualified" jaxb:version="2.0">
+
+	<xs:annotation>
+		<xs:appinfo>
+			<jaxb:globalBindings>
+				<jaxb:javaType name="java.util.Calendar" xmlType="xs:date"
+					parseMethod="javax.xml.bind.DatatypeConverter.parseDate"
+					printMethod="javax.xml.bind.DatatypeConverter.printDate" />
+			</jaxb:globalBindings>
+		</xs:appinfo>
+	</xs:annotation>
+
+	<xs:complexType name="ApiFieldError">
+		<xs:sequence>
+			<xs:element name="code" type="xs:string" />
+			<xs:element name="field" type="xs:string" />
+			<xs:element name="message" type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="ApiGlobalError">
+		<xs:sequence>
+			<xs:element name="code" type="xs:string" />
+			<xs:element name="message" type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:element name="ErrorResponse">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="fieldErrors" type="tns:ApiFieldError" maxOccurs="unbounded" minOccurs="0" />
+				<xs:element name="globalErrors" type="tns:ApiGlobalError" maxOccurs="unbounded" minOccurs="0" />				
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>	
+
+	<xs:complexType name="CustomerDto">
+		<xs:sequence>
+			<xs:element name="id" type="xs:long" />
+			<xs:element name="firstName" type="xs:string" />
+			<xs:element name="lastName" type="xs:string" />
+			<xs:element name="userName" type="xs:string" />
+			<xs:element name="email" type="xs:string" />
+			<xs:element name="identifier" type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:element name="NewCustomerRequest">
+		<xs:complexType>
+			<xs:sequence>
+			<xs:element name="firstName" type="xs:string" />
+			<xs:element name="lastName" type="xs:string" />
+			<xs:element name="userName" type="xs:string" />
+			<xs:element name="email" type="xs:string" />
+			<xs:element name="password" type="xs:string" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="CustomerResponse">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="customer" type="tns:CustomerDto" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+</xs:schema>
