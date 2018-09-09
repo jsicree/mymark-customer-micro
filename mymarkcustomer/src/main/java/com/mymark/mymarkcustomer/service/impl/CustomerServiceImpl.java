@@ -17,6 +17,8 @@ import com.mymark.mymarkcustomer.data.domain.Customer;
 import com.mymark.mymarkcustomer.repository.CustomerRepository;
 import com.mymark.mymarkcustomer.service.CustomerService;
 import com.mymark.mymarkcustomer.service.CustomerServiceException;
+import com.mymark.mymarkcustomer.service.ShoppingCartWebService;
+import com.mymark.shoppingcart.api.ShoppingCartDto;
 
 
 /**
@@ -29,7 +31,10 @@ public class CustomerServiceImpl implements CustomerService {
 
 	@Autowired
 	private CustomerRepository customerRepo;
-	
+
+	@Autowired
+	private ShoppingCartWebService cartService;
+
 	public CustomerServiceImpl() {
 		// TODO Auto-generated constructor stub
 	}
@@ -41,29 +46,18 @@ public class CustomerServiceImpl implements CustomerService {
 
 
 	@Override
-	@Transactional(isolation = Isolation.DEFAULT)
 	public Customer createNewCustomer(String firstName, String lastName, String userName, String email, String password)
 			throws CustomerServiceException {
 
-		Customer existingCustomer = customerRepo.findByUserName(userName);
-		if (existingCustomer != null) {
-			throw new CustomerServiceException("A customer exists with the specified userName " + userName);
-		}
-
-		existingCustomer = customerRepo.findByEmail(email);
-		if (existingCustomer != null) {
-			throw new CustomerServiceException("A customer exists with the specified email " + email);
-		}
-
-		String identifier = UUID.randomUUID().toString();
+		log.info("Creating new customer " + userName);
+		Customer newCustomer = saveCustomer(firstName, lastName, userName, email, password);
 		
-		Customer newCustomer = customerRepo.save(new Customer(userName, firstName, lastName, email, identifier));
+		log.info("Creating shopping cart for " + newCustomer.getUserName());
+		ShoppingCartDto cart = cartService.createShoppingCart(newCustomer.getIdentifier());
 
-		//ShoppingCart cart = new ShoppingCart();
-		
 		return newCustomer;
 	}
-
+	
 	@Override
 	public Customer lookupCustomerByUserName(String userName) throws CustomerServiceException {
 		
@@ -80,16 +74,6 @@ public class CustomerServiceImpl implements CustomerService {
 		return c;
 	}
 	
-	@Override
-	public void deleteCustomer(Long id) throws CustomerServiceException {
-
-		Optional<Customer> c = customerRepo.findById(id);
-
-		if (c.isPresent()) {
-			customerRepo.deleteById(id);
-		}
-	}
-
 	public Customer lookupCustomerById(Long id) throws ServiceException {
 		Optional<Customer> c = customerRepo.findById(id);
 		
@@ -108,4 +92,42 @@ public class CustomerServiceImpl implements CustomerService {
 		return c;
 	}
 
+	@Override
+	public void deleteCustomer(Long id) throws CustomerServiceException {
+
+		log.info("Deleting customer " + id);
+
+		Optional<Customer> c = customerRepo.findById(id);
+
+		if (c.isPresent()) {
+			log.info("Customer found. Deleting cart");
+			String cartCustIdent = cartService.deleteShoppingCart(c.get().getIdentifier());
+			if (c.get().getIdentifier().equalsIgnoreCase(cartCustIdent)) {
+				log.info("Cart deleted.");				
+			}
+			customerRepo.deleteById(id);
+		}
+	}
+
+	@Transactional(isolation = Isolation.DEFAULT)
+	private Customer saveCustomer(String firstName, String lastName, String userName, String email, String password) 
+			throws CustomerServiceException {
+		Customer existingCustomer = customerRepo.findByUserName(userName);
+		if (existingCustomer != null) {
+			throw new CustomerServiceException("A customer exists with the specified userName " + userName);
+		}
+
+		existingCustomer = customerRepo.findByEmail(email);
+		if (existingCustomer != null) {
+			throw new CustomerServiceException("A customer exists with the specified email " + email);
+		}
+
+		String identifier = UUID.randomUUID().toString();
+		
+		Customer newCustomer = customerRepo.saveAndFlush(new Customer(userName, firstName, lastName, email, identifier));
+		
+		return newCustomer;
+		
+	}
+	
 }

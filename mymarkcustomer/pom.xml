@@ -101,6 +101,13 @@
 			<version>0.0.1</version>
 		</dependency>
 
+		<!-- MyMark ShoppingCart API -->
+		<dependency>
+			<groupId>com.mymark</groupId>
+			<artifactId>mymarkshoppingcartapi</artifactId>
+			<version>0.0.1</version>
+		</dependency>
+
 	</dependencies>
 
 	<repositories>

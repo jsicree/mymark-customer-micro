@@ -26,7 +26,9 @@ import com.mymark.mymarkcustomer.data.CustomerDTOConverter;
 import com.mymark.mymarkcustomer.data.domain.Customer;
 import com.mymark.mymarkcustomer.service.CustomerService;
 import com.mymark.mymarkcustomer.service.CustomerServiceException;
+import com.mymark.mymarkcustomer.service.ShoppingCartWebService;
 import com.mymark.mymarkcustomer.ws.ApiException;
+import com.mymark.shoppingcart.api.ShoppingCartDto;
 
 /**
  * Handles requests for the form page examples.
@@ -42,6 +44,15 @@ public class CustomerServiceController {
 	@Autowired
 	protected MessageSource messageSource;
 		
+	@Autowired
+	@Qualifier("newCustomerRequestValidator")
+	private Validator newCustomerRequestValidator;
+
+	@InitBinder("newCustomerRequest")
+	public void setupGetCustomerByUserNameBinder(WebDataBinder binder) {
+		binder.addValidators(newCustomerRequestValidator);
+	}	
+	
 	protected final static Logger log = LoggerFactory.getLogger(CustomerServiceController.class);
 
 	public CustomerServiceController() {
@@ -50,7 +61,7 @@ public class CustomerServiceController {
 
 	@RequestMapping(value = "/customer", method = RequestMethod.POST, produces = "application/json")
 	public ResponseEntity<CustomerResponse> createNewCustomer(
-			@RequestBody NewCustomerRequest request) throws ApiException {
+			@Valid @RequestBody NewCustomerRequest request) throws ApiException {
 		
 		CustomerResponse response = new CustomerResponse();
 		
@@ -59,6 +70,7 @@ public class CustomerServiceController {
 		Customer newCustomer;
 		try {
 			newCustomer = customerService.createNewCustomer(request.getFirstName(), request.getLastName(), request.getUserName(), request.getEmail(), request.getPassword());
+
 			CustomerDto dto = CustomerDTOConverter.toCustomerDto(newCustomer);
 			response.setCustomer(dto);
 		} catch (CustomerServiceException e) {
@@ -70,20 +82,23 @@ public class CustomerServiceController {
 	}
 
 	
-	@RequestMapping(value = "/customer/{userName}", method = RequestMethod.GET, produces = "application/json")
-	public ResponseEntity<CustomerResponse> getCustomerByUserName(
-			@PathVariable(required = true) String userName) throws ApiException {
+	@RequestMapping(value = "/customer/{customerIdentifier}", method = RequestMethod.GET, produces = "application/json")
+	public ResponseEntity<CustomerResponse> getCustomerByCustomerIdentifier(
+			@PathVariable(required = true) String customerIdentifier) throws ApiException {
 		
 		
-		log.info("In getCustomerByUserName...");
-		log.debug("Fetching customer: " + userName);
+		log.info("In getCustomerByCustomerIdentifier...");
+		log.info("Fetching customer: " + customerIdentifier);
 		
 		CustomerResponse response = new CustomerResponse();
 
 		try {
-			Customer customer = customerService.lookupCustomerByUserName(userName);
+			Customer customer = customerService.lookupCustomerByIdentifier(customerIdentifier);
 			if (customer != null) {
+				log.info("lookupCustomerByIdentifier found customer: " + customerIdentifier);				
 				response.setCustomer(CustomerDTOConverter.toCustomerDto(customer));
+			} else {
+				log.info("lookupCustomerByIdentifier did not find customer: " + customerIdentifier);				
 			}
 		} catch (CustomerServiceException e) {
 			// TODO Auto-generated catch block
@@ -94,16 +109,16 @@ public class CustomerServiceController {
 	}
 	
 	
-	@RequestMapping(value = "/customer/{userName}", method = RequestMethod.DELETE, produces = "application/json")
+	@RequestMapping(value = "/customer/{customerIdentifier}", method = RequestMethod.DELETE, produces = "application/json")
 	public ResponseEntity<?> deleteCustomer(
-			@PathVariable(required = true) String userName) throws ApiException {
+			@PathVariable(required = true) String customerIdentifier) throws ApiException {
 		
 		
 		log.info("In deleteCustomer...");
-		log.debug("Deleting customer: " + userName);
+		log.info("Deleting customer: " + customerIdentifier);
 		
 		try {
-			Customer customer = customerService.lookupCustomerByUserName(userName);
+			Customer customer = customerService.lookupCustomerByIdentifier(customerIdentifier);
 			if (customer != null) {
 				customerService.deleteCustomer(customer.getId());
 			}
@@ -111,7 +126,7 @@ public class CustomerServiceController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return new ResponseEntity<>(userName, HttpStatus.OK);
+		return new ResponseEntity<>(customerIdentifier, HttpStatus.OK);
 		
 	}
 	

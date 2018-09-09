@@ -11,7 +11,9 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 import com.mymark.mymarkcustomer.service.CustomerService;
+import com.mymark.mymarkcustomer.service.ShoppingCartWebService;
 import com.mymark.mymarkcustomer.service.impl.CustomerServiceImpl;
+import com.mymark.mymarkcustomer.service.impl.ShoppingCartWebServiceImpl;
 
 @Configuration
 @EnableAutoConfiguration
@@ -27,6 +29,12 @@ public class MyMarkCustomerApplication {
 	public CustomerService customerService() {
 		return new CustomerServiceImpl();
 	}
+
+	@Bean
+	public ShoppingCartWebService cartService() {
+		return new ShoppingCartWebServiceImpl();
+	}
+	
 	
 	public static void main(String[] args) {
 		SpringApplication.run(MyMarkCustomerApplication.class, args);

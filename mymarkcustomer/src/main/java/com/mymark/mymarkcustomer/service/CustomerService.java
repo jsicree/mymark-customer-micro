@@ -3,8 +3,6 @@
  */
 package com.mymark.mymarkcustomer.service;
 
-import org.hibernate.service.spi.ServiceException;
-
 import com.mymark.mymarkcustomer.data.domain.Customer;
 
 /**
