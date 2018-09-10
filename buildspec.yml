@@ -7,6 +7,7 @@ phases:
   pre_build:
     commands:
       - echo Running maven clean
+      - mvn install:install-file -Dfile=libs/mymarkshoppingcartapi.jar -DgroupId=com.mymark -DartifactId=mymarkshoppingcartapi -Dversion=0.0.1 -Dpackaging=jar
       - mvn -f mymarkcustomer/pom.xml clean
       - mvn -f mymarkcustomerapi/pom.xml clean
   build:
