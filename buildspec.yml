@@ -6,22 +6,20 @@ phases:
       - sudo update-ca-certificates -f
   pre_build:
     commands:
-      - echo Running maven clean for Customer Microservice
-      - mvn -f mymarkcustomerapi/pom.xml clean
+      - echo Running maven clean
+      - mvn install:install-file -Dfile=libs/mymarkshoppingcartapi.jar -DgroupId=com.mymark -DartifactId=mymarkshoppingcartapi -Dversion=0.0.1 -Dpackaging=jar
       - mvn -f mymarkcustomer/pom.xml clean
+      - mvn -f mymarkcustomerapi/pom.xml clean
   build:
     commands:
-      - echo Build started for Customer Microservice
+      - echo Build started
       - mvn -f mymarkcustomerapi/pom.xml install -DskipTests
       - mvn -f mymarkcustomer/pom.xml install -DskipTests
       
   post_build:
     commands:
-      - mv mymarkcustomer/target/mymarkcustomermicro.war mymarkcustomermicro.war
-      - mkdir .ebextensions
-      - mv mymarkcustomer/.ebextensions/* .ebextensions/
+      - mv mymarkcustomer/target/mymarkcustomermicro.jar mymarkcustomermicro.jar
 
 artifacts:
   files:
-    - mymarkcustomermicro.war
-    - .ebextensions/**/*
+    - mymarkcustomermicro.jar
